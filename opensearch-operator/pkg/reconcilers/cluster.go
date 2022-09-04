@@ -239,14 +239,48 @@ func (r *ClusterReconciler) dealWithExpandingPvc(existing *appsv1.StatefulSet, n
 
 		//2.4 Recreating pod
 		r.logger.Info("start to recreate pod: " + item.Name)
-		item.ResourceVersion = ""
-		_, err := r.ReconcileResource(&item, reconciler.StatePresent)
+		err := r.doRebuildPod(item)
 		if err != nil {
 			r.logger.Info("failed to rereating pod: " + item.Name)
 			r.logger.Info("err : " + err.Error())
 		}
 	}
 	return nil
+}
+
+func (r *ClusterReconciler) doRebuildPod(pod corev1.Pod) error {
+	newPod := pod
+	newPod.Annotations = nil
+	newPod.ResourceVersion = ""
+	newPod.UID = ""
+	newPod.DeletionTimestamp = nil
+	newPod.OwnerReferences = nil
+	newPod.Status = corev1.PodStatus{}
+
+	err1 := r.Create(r.ctx, &newPod)
+	if err1 != nil {
+		r.logger.Info(newPod.Name+"create failed ", err1)
+		return err1
+	}
+
+	err2 := Retry(time.Second*2, time.Duration(waitLimit)*time.Second, func() (bool, error) {
+		var currentPod corev1.Pod
+		if err3 := r.Get(r.ctx, client.ObjectKeyFromObject(&pod), &currentPod); err3 != nil {
+			return false, err3
+		}
+		if currentPod.Status.Phase != "Running" {
+			r.logger.Info(currentPod.Name + " is not running yet")
+			return false, nil
+		}
+		for _, c := range currentPod.Status.ContainerStatuses {
+			if !c.Ready {
+				r.logger.Info(currentPod.Name + "|" + c.Image + " is not ready yet")
+				return false, nil
+			}
+		}
+		return true, nil
+	})
+	return err2
 }
 
 func (r *ClusterReconciler) getPVC(pod corev1.Pod, nodePool opsterv1.NodePool, existing *appsv1.StatefulSet) (corev1.PersistentVolumeClaim, error) {
