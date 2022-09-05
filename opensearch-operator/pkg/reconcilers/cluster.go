@@ -350,8 +350,32 @@ func (r *ClusterReconciler) doExpandPVC(pvc corev1.PersistentVolumeClaim, nodePo
 }
 
 func (r *ClusterReconciler) DeleteResources() (ctrl.Result, error) {
-	result := reconciler.CombinedResult{}
-	return result.Result, result.Err
+	// deleting pvc
+	pvcLabels := map[string]string{
+		builders.ClusterLabel: r.instance.Name,
+	}
+
+	pvcs := corev1.PersistentVolumeClaimList{}
+	if err := r.Client.List(r.ctx,
+		&pvcs,
+		&client.ListOptions{
+			Namespace:     r.instance.Namespace,
+			LabelSelector: labels.SelectorFromSet(pvcLabels),
+		},
+	); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	r.logger.Info("start to delete pvcs.")
+	for i := range pvcs.Items {
+		pvc := pvcs.Items[i]
+		r.logger.Info("deleting " + pvc.Name)
+		if err := r.Delete(r.ctx, &pvc); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+	r.logger.Info("finished deleting pvcs.")
+	return ctrl.Result{}, nil
 }
 
 // retry runs func "f" every "in" time until "limit" is reached.
