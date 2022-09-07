@@ -1,0 +1,8 @@
+apiVersion: opensearch.opster.io/v1
+kind: Logstash
+metadata:
+  name: logstash-sample
+spec:
+  replicas: 1
+  config:
+    ports: [9001,9002]

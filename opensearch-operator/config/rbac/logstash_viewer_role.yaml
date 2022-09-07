@@ -1,0 +1,20 @@
+# permissions for end users to view logstashes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: logstash-viewer-role
+rules:
+- apiGroups:
+  - opster.opensearch.opster.io
+  resources:
+  - logstashes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - opster.opensearch.opster.io
+  resources:
+  - logstashes/status
+  verbs:
+  - get

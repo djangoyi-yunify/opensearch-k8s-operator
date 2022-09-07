@@ -221,3 +221,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - opster.opensearch.opster.io
+  resources:
+  - logstashes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - opster.opensearch.opster.io
+  resources:
+  - logstashes/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - opster.opensearch.opster.io
+  resources:
+  - logstashes/status
+  verbs:
+  - get
+  - patch
+  - update
