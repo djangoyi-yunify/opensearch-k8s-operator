@@ -6,15 +6,13 @@ spec:
   replicas: 1
   config:
     opensearchClusterName: opscluster
-    logstashConfig:
-    ports: [9001,9002]
-    pipelineConfig:
-      inputs:
-        - file:
-            "path => abc"
-            "other => def"
-      filters:
-      outputs:
+    # logstashConfig:
+    # ports: [9001,9002]
+    # pipelineConfig:
+    #   inputs:
+    #   filters:
+    #   outputs:
+    #   openSearchOutput:
   podTemplate:
     spec:
       containers:

@@ -7,47 +7,49 @@ import (
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/go-logr/logr"
 	opsterv1 "opensearch.opster.io/api/v1"
-	"opensearch.opster.io/pkg/logstash/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-type ConfigMapReconciler struct {
+type DeploymentReconciler struct {
 	client.Client
 	reconciler.ResourceReconciler
 	ctx      context.Context
 	instance *opsterv1.Logstash
 	logger   logr.Logger
+	hash     string
 }
 
-func NewConfigMapReconciler(
+func NewDeploymentReconciler(
 	client client.Client,
 	ctx context.Context,
 	instance *opsterv1.Logstash,
+	hash string,
 	opts ...reconciler.ResourceReconcilerOption,
-) *ConfigMapReconciler {
-	return &ConfigMapReconciler{
+) *DeploymentReconciler {
+	return &DeploymentReconciler{
 		Client: client,
 		ResourceReconciler: reconciler.NewReconcilerWith(client,
 			append(
 				opts,
 				reconciler.WithPatchCalculateOptions(patch.IgnoreVolumeClaimTemplateTypeMetaAndStatus(), patch.IgnoreStatusFields()),
-				reconciler.WithLog(log.FromContext(ctx).WithValues("logstash subcontroller", "configmap")),
+				reconciler.WithLog(log.FromContext(ctx).WithValues("logstash subcontroller", "deployment")),
 			)...,
 		),
 		ctx:      ctx,
 		instance: instance,
+		hash:     hash,
 		logger:   log.FromContext(ctx),
 	}
 }
 
-func (r *ConfigMapReconciler) Reconcile() (ctrl.Result, string, error) {
-	r.logger.Info("Reconciling configmap")
+func (r *DeploymentReconciler) Reconcile() (ctrl.Result, error) {
+	r.logger.Info("Reconciling deployment")
 
 	result := reconciler.CombinedResult{}
-	lstconfigmap, hashStr := utils.BuildConfigMap(r.instance)
-	result.CombineErr(ctrl.SetControllerReference(r.instance, lstconfigmap, r.Scheme()))
-	result.Combine(r.ReconcileResource(lstconfigmap, reconciler.StatePresent))
-	return result.Result, hashStr, result.Err
+	// lstsecret := utils.BuildSecret(r.instance)
+	// result.CombineErr(ctrl.SetControllerReference(r.instance, lstsecret, r.Scheme()))
+	// result.Combine(r.ReconcileResource(lstsecret, reconciler.StatePresent))
+	return result.Result, result.Err
 }

@@ -158,17 +158,11 @@ spec:
                       filters:
                         type: string
                       inputs:
-                        additionalProperties:
-                          items:
-                            type: string
-                          type: array
-                        type: object
+                        type: string
+                      openSearchOutput:
+                        type: string
                       outputs:
-                        additionalProperties:
-                          items:
-                            type: string
-                          type: array
-                        type: object
+                        type: string
                     type: object
                   ports:
                     items:

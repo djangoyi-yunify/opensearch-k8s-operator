@@ -125,6 +125,22 @@ func (r *LogstashReconciler) deleteExternalResources(ctx context.Context, req ct
 func (r *LogstashReconciler) internalReconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	sec := lst.NewSecretReconciler(r.Client, ctx, r.Instance)
 	res, err := sec.Reconcile()
+	if err != nil {
+		return res, err
+	}
+
+	cm := lst.NewConfigMapReconciler(r.Client, ctx, r.Instance)
+	res, hash, err := cm.Reconcile()
+	if err != nil {
+		return res, err
+	}
+
+	deployment := lst.NewDeploymentReconciler(r.Client, ctx, r.Instance, hash)
+	res, err = deployment.Reconcile()
+	if err != nil {
+		return res, err
+	}
+
 	return res, err
 }
 

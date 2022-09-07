@@ -29,9 +29,10 @@ const (
 )
 
 type PipelineConfig struct {
-	Inputs  map[string][]string `json:"inputs,omitempty"`
-	Filters string              `json:"filters,omitempty"`
-	Outputs map[string][]string `json:"outputs,omitempty"`
+	Inputs           string `json:"inputs,omitempty"`
+	Filters          string `json:"filters,omitempty"`
+	Outputs          string `json:"outputs,omitempty"`
+	OpenSearchOutput string `json:"openSearchOutput,omitempty"`
 }
 
 type Config struct {
