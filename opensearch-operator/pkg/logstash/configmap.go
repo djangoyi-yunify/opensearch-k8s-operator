@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-type SecretReconciler struct {
+type ConfigMapReconciler struct {
 	client.Client
 	reconciler.ResourceReconciler
 	ctx      context.Context
@@ -21,19 +21,19 @@ type SecretReconciler struct {
 	logger   logr.Logger
 }
 
-func NewSecretReconciler(
+func NewConfigMapReconciler(
 	client client.Client,
 	ctx context.Context,
 	instance *opsterv1.Logstash,
 	opts ...reconciler.ResourceReconcilerOption,
-) *SecretReconciler {
-	return &SecretReconciler{
+) *ConfigMapReconciler {
+	return &ConfigMapReconciler{
 		Client: client,
 		ResourceReconciler: reconciler.NewReconcilerWith(client,
 			append(
 				opts,
 				reconciler.WithPatchCalculateOptions(patch.IgnoreVolumeClaimTemplateTypeMetaAndStatus(), patch.IgnoreStatusFields()),
-				reconciler.WithLog(log.FromContext(ctx).WithValues("logstash subcontroller", "secret")),
+				reconciler.WithLog(log.FromContext(ctx).WithValues("logstash subcontroller", "configmap")),
 			)...,
 		),
 		ctx:      ctx,
@@ -42,17 +42,12 @@ func NewSecretReconciler(
 	}
 }
 
-func (r *SecretReconciler) Reconcile() (ctrl.Result, error) {
-	r.logger.Info("Reconciling secret")
-
-	if len(r.instance.Spec.Config.OpenSearchClusterName) == 0 {
-		r.logger.Info("Not define OpenSearchClusterName, not create secret")
-		return ctrl.Result{}, nil
-	}
+func (r *ConfigMapReconciler) Reconcile() (ctrl.Result, error) {
+	r.logger.Info("Reconciling configmap")
 
 	result := reconciler.CombinedResult{}
-	lstsecret := utils.BuildSecret(r.instance)
-	result.CombineErr(ctrl.SetControllerReference(r.instance, lstsecret, r.Scheme()))
-	result.Combine(r.ReconcileResource(lstsecret, reconciler.StatePresent))
+	lstconfigmap := utils.BuildConfigMap(r.instance)
+	result.CombineErr(ctrl.SetControllerReference(r.instance, lstconfigmap, r.Scheme()))
+	result.Combine(r.ReconcileResource(lstconfigmap, reconciler.StatePresent))
 	return result.Result, result.Err
 }

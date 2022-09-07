@@ -40,9 +40,9 @@ type LogstashReconciler struct {
 	logr.Logger
 }
 
-//+kubebuilder:rbac:groups=opster.opensearch.opster.io,resources=logstashes,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=opster.opensearch.opster.io,resources=logstashes/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=opster.opensearch.opster.io,resources=logstashes/finalizers,verbs=update
+//+kubebuilder:rbac:groups=opensearch.opster.io,resources=logstashes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=opensearch.opster.io,resources=logstashes/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=opensearch.opster.io,resources=logstashes/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -98,12 +98,12 @@ func (r *LogstashReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 
-	if len(r.Instance.Status.Phase) == 0 {
-		r.Instance.Status.Phase = opsterv1.LogstashPhasePending
-		if err := r.Update(ctx, r.Instance); err != nil {
-			return ctrl.Result{}, err
-		}
-	}
+	// if len(r.Instance.Status.Phase) == 0 {
+	// 	r.Instance.Status.Phase = opsterv1.LogstashPhasePending
+	// 	if err := r.Update(ctx, r.Instance); err != nil {
+	// 		return ctrl.Result{}, err
+	// 	}
+	// }
 
 	result, err := r.internalReconcile(ctx, req)
 	if err != nil {

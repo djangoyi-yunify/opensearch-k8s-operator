@@ -10,7 +10,7 @@ const (
 	LogstashUser = "admin"
 )
 
-func BuildeSecret(instance *opsterv1.Logstash) *corev1.Secret {
+func BuildSecret(instance *opsterv1.Logstash) *corev1.Secret {
 	// for test
 	// will find a way to create password
 	password := "admin"
@@ -26,4 +26,8 @@ func BuildeSecret(instance *opsterv1.Logstash) *corev1.Secret {
 			"password": password,
 		},
 	}
+}
+
+func BuildConfigMap(instance *opsterv1.Logstash) *corev1.ConfigMap {
+	return nil
 }

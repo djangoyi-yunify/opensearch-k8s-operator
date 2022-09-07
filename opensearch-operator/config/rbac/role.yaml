@@ -120,6 +120,32 @@ rules:
 - apiGroups:
   - opensearch.opster.io
   resources:
+  - logstashes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - opensearch.opster.io
+  resources:
+  - logstashes/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - opensearch.opster.io
+  resources:
+  - logstashes/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - opensearch.opster.io
+  resources:
   - opensearchclusters
   verbs:
   - create
@@ -217,32 +243,6 @@ rules:
   - opensearch.opster.io
   resources:
   - opensearchusers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - opster.opensearch.opster.io
-  resources:
-  - logstashes
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - opster.opensearch.opster.io
-  resources:
-  - logstashes/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - opster.opensearch.opster.io
-  resources:
-  - logstashes/status
   verbs:
   - get
   - patch

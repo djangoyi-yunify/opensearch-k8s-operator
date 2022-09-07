@@ -28,12 +28,18 @@ const (
 	LogstashPhasePending LogstashPhase = "PENDING"
 )
 
+type PipelineConfig struct {
+	Inputs  map[string][]string `json:"inputs,omitempty"`
+	Filters string              `json:"filters,omitempty"`
+	Outputs map[string][]string `json:"outputs,omitempty"`
+}
+
 type Config struct {
-	OpenSearchClusterName string                      `json:"opensearchClusterName,omitempty"`
-	Jvm                   string                      `json:"jvm,omitempty"`
-	LogstashConfig        []corev1.EnvVar             `json:"logstashConfig,omitempty"`
-	PipelineConfigRef     corev1.LocalObjectReference `json:"pipelineConfig,omitempty"`
-	Ports                 []int32                     `json:"ports,omitempty"`
+	OpenSearchClusterName string          `json:"opensearchClusterName,omitempty"`
+	Jvm                   string          `json:"jvm,omitempty"`
+	LogstashConfig        []corev1.EnvVar `json:"logstashConfig,omitempty"`
+	PipelineConfig        PipelineConfig  `json:"pipelineConfig,omitempty"`
+	Ports                 []int32         `json:"ports,omitempty"`
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -43,11 +49,8 @@ type Config struct {
 type LogstashSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Config   Config `json:"config"`
-	Replicas int32  `json:"replicas"`
-
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:pruning:PreserveUnknownFields
+	Config      Config                 `json:"config"`
+	Replicas    int32                  `json:"replicas"`
 	PodTemplate corev1.PodTemplateSpec `json:"podTemplate,omitempty"`
 }
 

@@ -154,13 +154,21 @@ spec:
                   opensearchClusterName:
                     type: string
                   pipelineConfig:
-                    description: LocalObjectReference contains enough information
-                      to let you locate the referenced object inside the same namespace.
                     properties:
-                      name:
-                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                          TODO: Add other useful fields. apiVersion, kind, uid?'
+                      filters:
                         type: string
+                      inputs:
+                        additionalProperties:
+                          items:
+                            type: string
+                          type: array
+                        type: object
+                      outputs:
+                        additionalProperties:
+                          items:
+                            type: string
+                          type: array
+                        type: object
                     type: object
                   ports:
                     items:
@@ -7208,7 +7216,6 @@ spec:
                     - containers
                     type: object
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               replicas:
                 format: int32
                 type: integer

@@ -5,4 +5,17 @@ metadata:
 spec:
   replicas: 1
   config:
+    opensearchClusterName: opscluster
+    logstashConfig:
     ports: [9001,9002]
+    pipelineConfig:
+      inputs:
+        - file:
+            "path => abc"
+            "other => def"
+      filters:
+      outputs:
+  podTemplate:
+    spec:
+      containers:
+        - name: logstash
