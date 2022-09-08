@@ -30,6 +30,14 @@ func GetServiceName(lstname string) string {
 	return builder.String()
 }
 
+func GetDeploymentName(lstname string) string {
+	var builder strings.Builder
+	builder.WriteString("logstash-")
+	builder.WriteString(lstname)
+	builder.WriteString("-workload")
+	return builder.String()
+}
+
 func GetLabels(lstname string) map[string]string {
 	return map[string]string{
 		ClusterNameKey: lstname,

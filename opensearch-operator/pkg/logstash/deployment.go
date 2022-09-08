@@ -7,6 +7,7 @@ import (
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/go-logr/logr"
 	opsterv1 "opensearch.opster.io/api/v1"
+	"opensearch.opster.io/pkg/logstash/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -48,8 +49,8 @@ func (r *DeploymentReconciler) Reconcile() (ctrl.Result, error) {
 	r.logger.Info("Reconciling deployment")
 
 	result := reconciler.CombinedResult{}
-	// lstsecret := utils.BuildSecret(r.instance)
-	// result.CombineErr(ctrl.SetControllerReference(r.instance, lstsecret, r.Scheme()))
-	// result.Combine(r.ReconcileResource(lstsecret, reconciler.StatePresent))
+	lstdeployment := utils.BuildDeployment(r.instance)
+	result.CombineErr(ctrl.SetControllerReference(r.instance, lstdeployment, r.Scheme()))
+	result.Combine(r.ReconcileResource(lstdeployment, reconciler.StatePresent))
 	return result.Result, result.Err
 }

@@ -6,7 +6,11 @@ spec:
   replicas: 1
   config:
     opensearchClusterName: opscluster
-    # logstashConfig:
+    logstashConfig:
+      - name: env1
+        value: "hehe1"
+      - name: env2
+        value: "haha2"
     ports: [9001,9002]
     # pipelineConfig:
     #   inputs:
