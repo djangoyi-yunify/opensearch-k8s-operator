@@ -135,6 +135,12 @@ func (r *LogstashReconciler) internalReconcile(ctx context.Context, req ctrl.Req
 		return res, err
 	}
 
+	svc := lst.NewServiceReconciler(r.Client, ctx, r.Instance)
+	res, err = svc.Reconcile()
+	if err != nil {
+		return res, err
+	}
+
 	deployment := lst.NewDeploymentReconciler(r.Client, ctx, r.Instance, hash)
 	res, err = deployment.Reconcile()
 	if err != nil {

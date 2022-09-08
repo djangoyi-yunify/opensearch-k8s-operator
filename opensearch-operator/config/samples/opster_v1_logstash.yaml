@@ -7,7 +7,7 @@ spec:
   config:
     opensearchClusterName: opscluster
     # logstashConfig:
-    # ports: [9001,9002]
+    ports: [9001,9002]
     # pipelineConfig:
     #   inputs:
     #   filters:
