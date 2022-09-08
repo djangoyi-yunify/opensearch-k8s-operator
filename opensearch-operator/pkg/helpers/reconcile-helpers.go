@@ -10,7 +10,7 @@ import (
 )
 
 func ResolveImage(cr *opsterv1.OpenSearchCluster, nodePool *opsterv1.NodePool) (result opsterv1.ImageSpec) {
-	defaultRepo := "docker.io/opensearchproject"
+	defaultRepo := "docker.io/nosqlpass"
 	defaultImage := "opensearch"
 
 	var version string
@@ -55,7 +55,7 @@ func ResolveImage(cr *opsterv1.OpenSearchCluster, nodePool *opsterv1.NodePool) (
 }
 
 func ResolveDashboardsImage(cr *opsterv1.OpenSearchCluster) (result opsterv1.ImageSpec) {
-	defaultRepo := "docker.io/opensearchproject"
+	defaultRepo := "docker.io/nosqlpass"
 	defaultImage := "opensearch-dashboards"
 
 	// If a custom dashboard image is specified, use it.

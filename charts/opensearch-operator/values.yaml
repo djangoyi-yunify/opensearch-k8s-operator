@@ -1,5 +1,7 @@
 nodeSelector: {}
 tolerations: []
+kubeProxy:
+  version: "v0.8.0"
 manager:
   resources:
     limits:
@@ -9,7 +11,7 @@ manager:
       cpu: 2
       memory: 1Gi
   image:
-    repository: public.ecr.aws/opsterio/opensearch-operator
+    repository: docker.io/nosqlpass/opensearch-operator
     ## tag default uses appVersion from Chart.yaml, to override specify tag tag: "v1.1"
     tag: ""
     pullPolicy: "Always"
