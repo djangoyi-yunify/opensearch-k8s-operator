@@ -45,7 +45,7 @@ func NewSecretReconciler(
 func (r *SecretReconciler) Reconcile() (ctrl.Result, error) {
 	r.logger.Info("Reconciling secret")
 
-	if len(r.instance.Spec.Config.OpenSearchClusterName) == 0 {
+	if r.instance.Spec.Config.OpenSearchClusterRef == nil {
 		r.logger.Info("Not define OpenSearchClusterName, not create secret")
 		return ctrl.Result{}, nil
 	}

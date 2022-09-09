@@ -20,7 +20,8 @@ const (
 	EnvLogstashPass               = "LOGSTASHPASS"
 	EnvLogstashPassKey            = "password"
 	PipelineConfigVolumeName      = "pipeline"
-	PipelineConfigVolumeMountPath = "/abc/def/ghi"
+	PipelineConfigVolumeMountPath = "/usr/share/logstash/pipeline"
+	DEFAULTLOGSTASHIMAGEURL       = "opensearchproject/logstash-oss-with-opensearch-output-plugin:8.4.0"
 )
 
 func BuildSecret(instance *opsterv1.Logstash) *corev1.Secret {
@@ -41,10 +42,33 @@ func BuildSecret(instance *opsterv1.Logstash) *corev1.Secret {
 	}
 }
 
+func buildPipelineInputs(inputs string) string {
+	if len(inputs) != 0 {
+		return inputs
+	}
+
+	var builder strings.Builder
+	builder.WriteString("http {\n")
+	builder.WriteString("  port => 8080\n")
+	builder.WriteString("}\n")
+	return builder.String()
+}
+
+func buildPipelineOutputs(instance *opsterv1.Logstash) string {
+	var builder strings.Builder
+	if len(instance.Spec.Config.PipelineConfig.Outputs) == 0 && instance.Spec.Config.OpenSearchClusterRef == nil {
+		return "stdout {}\n"
+	}
+	builder.WriteString(instance.Spec.Config.PipelineConfig.Outputs)
+	builder.WriteString("\n")
+	builder.WriteString("")
+	return builder.String()
+}
+
 func BuildConfigMap(instance *opsterv1.Logstash) (*corev1.ConfigMap, string) {
 	var builder strings.Builder
 	builder.WriteString("input {\n")
-	builder.WriteString(instance.Spec.Config.PipelineConfig.Inputs)
+	builder.WriteString(buildPipelineInputs(instance.Spec.Config.PipelineConfig.Inputs))
 	builder.WriteString("\n}\n")
 
 	builder.WriteString("filter {\n")
@@ -52,7 +76,7 @@ func BuildConfigMap(instance *opsterv1.Logstash) (*corev1.ConfigMap, string) {
 	builder.WriteString("\n}\n")
 
 	builder.WriteString("output {\n")
-	builder.WriteString(instance.Spec.Config.PipelineConfig.Outputs)
+	builder.WriteString(buildPipelineOutputs(instance))
 	builder.WriteString("\n}")
 
 	hash := sha1.New()
@@ -66,7 +90,7 @@ func BuildConfigMap(instance *opsterv1.Logstash) (*corev1.ConfigMap, string) {
 			Namespace: instance.Namespace,
 		},
 		Data: map[string]string{
-			"pipelines.yml": builder.String(),
+			"logstash.conf": builder.String(),
 		},
 	}, hashStr
 }
@@ -103,6 +127,10 @@ func BuildService(instance *opsterv1.Logstash) *corev1.Service {
 }
 
 func buildEnvValArrayFromSecret(instance *opsterv1.Logstash) []corev1.EnvVar {
+	if instance.Spec.Config.OpenSearchClusterRef == nil {
+		return make([]corev1.EnvVar, 0)
+	}
+
 	secname := GetSecretName(instance.Name)
 	res := make([]corev1.EnvVar, 0)
 
@@ -134,6 +162,18 @@ func buildEnvValArrayFromSecret(instance *opsterv1.Logstash) []corev1.EnvVar {
 	}
 	res = append(res, tmp)
 
+	return res
+}
+
+func buildContainerPostArray(instance *opsterv1.Logstash) []corev1.ContainerPort {
+	res := make([]corev1.ContainerPort, 0)
+	portlist := instance.Spec.Config.Ports
+	for _, p := range portlist {
+		res = append(res, corev1.ContainerPort{
+			Name:          fmt.Sprintf("p%d", p),
+			ContainerPort: p,
+		})
+	}
 	return res
 }
 
@@ -177,6 +217,12 @@ func buildTemplateSpec(instance *opsterv1.Logstash) *corev1.PodTemplateSpec {
 	// Mounts for configmap
 	res.Spec.Volumes = MergeVolumeArrayWithConfigMap(res.Spec.Volumes, GetConfigMapName(instance.Name))
 	res.Spec.Containers[0].VolumeMounts = MergeVolumeMountArrayWithConfigMap(res.Spec.Containers[0].VolumeMounts)
+
+	// ports
+	res.Spec.Containers[0].Ports = buildContainerPostArray(instance)
+
+	// image
+	res.Spec.Containers[0].Image = GetLogstashImageUrl(res.Spec.Containers[0].Image)
 
 	return res
 }

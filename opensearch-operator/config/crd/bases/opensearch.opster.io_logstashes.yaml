@@ -151,8 +151,13 @@ spec:
                       - name
                       type: object
                     type: array
-                  opensearchClusterName:
-                    type: string
+                  openSearchClusterRef:
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    type: object
                   pipelineConfig:
                     properties:
                       filters:

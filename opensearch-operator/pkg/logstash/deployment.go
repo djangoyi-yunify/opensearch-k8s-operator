@@ -49,6 +49,10 @@ func (r *DeploymentReconciler) Reconcile() (ctrl.Result, error) {
 	r.logger.Info("Reconciling deployment")
 
 	result := reconciler.CombinedResult{}
+	// var osservice *corev1.Service = nil
+	// if r.instance.Spec.Config.OpenSearchClusterRef != nil {
+
+	// }
 	lstdeployment := utils.BuildDeployment(r.instance)
 	result.CombineErr(ctrl.SetControllerReference(r.instance, lstdeployment, r.Scheme()))
 	result.Combine(r.ReconcileResource(lstdeployment, reconciler.StatePresent))

@@ -85,3 +85,11 @@ func MergeVolumeMountArrayWithConfigMap(orgarr []corev1.VolumeMount) []corev1.Vo
 	}
 	return res
 }
+
+func GetLogstashImageUrl(oldurl string) string {
+	if len(oldurl) == 0 {
+		return DEFAULTLOGSTASHIMAGEURL
+	}
+
+	return oldurl
+}
