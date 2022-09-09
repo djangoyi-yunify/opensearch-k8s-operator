@@ -4,14 +4,14 @@ metadata:
   name: cluster
 spec:
   general:
-    version: 1.3.0
+    version: 2.2.0
     httpPort: 9200
     defaultRepo: "docker.io/nosqlpass"
     vendor: opensearch
     serviceName: cluster
 #    pluginsList: ["repository-s3"," https://github.com/aiven/prometheus-exporter-plugin-for-opensearch/releases/download/1.3.0.0/prometheus-exporter-1.3.0.0.zip"]
   dashboards:
-    version: 1.3.0
+    version: 2.1.0
     enable: true
     replicas: 1
     resources:
@@ -50,7 +50,7 @@ spec:
             memory: "1Gi"
             cpu: "500m"
       roles:
-        - "master"
+        - "cluster_manager"
     - component: nodes
       replicas: 3
       diskSize: "30Gi"
