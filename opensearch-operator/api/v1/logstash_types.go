@@ -30,14 +30,16 @@ const (
 
 type OpenSearchClusterRef struct {
 	Name      string `json:"name,omitempty"`
+	Service   string `json:"service,omitempty"`
+	Secret    string `json:"secret,omitempty"`
 	Namespace string `json:"namespace,omitempty"`
 }
 
 type PipelineConfig struct {
-	Inputs           string `json:"inputs,omitempty"`
-	Filters          string `json:"filters,omitempty"`
-	Outputs          string `json:"outputs,omitempty"`
-	OpenSearchOutput string `json:"openSearchOutput,omitempty"`
+	Inputs          string `json:"inputs,omitempty"`
+	Filters         string `json:"filters,omitempty"`
+	Outputs         string `json:"outputs,omitempty"`
+	OpenSearchIndex string `json:"openSearchIndex,omitempty"`
 }
 
 type Config struct {

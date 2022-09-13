@@ -123,8 +123,14 @@ func (r *LogstashReconciler) deleteExternalResources(ctx context.Context, req ct
 }
 
 func (r *LogstashReconciler) internalReconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	sec := lst.NewSecretReconciler(r.Client, ctx, r.Instance)
-	res, err := sec.Reconcile()
+	// sec := lst.NewSecretReconciler(r.Client, ctx, r.Instance)
+	// res, err := sec.Reconcile()
+	// if err != nil {
+	// 	return res, err
+	// }
+
+	osinfo := lst.NewOsInfoReconciler(r.Client, ctx, r.Instance)
+	res, err := osinfo.Reconcile()
 	if err != nil {
 		return res, err
 	}

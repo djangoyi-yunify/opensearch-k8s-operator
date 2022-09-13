@@ -14,30 +14,34 @@ import (
 )
 
 const (
-	LogstashUser                  = "admin"
+	LogstashUser                  = "admin" //only for test, realname is logstashuser
 	EnvLogstashUser               = "LOGSTASHUSER"
-	EnvLogstashUserKey            = "useranme"
 	EnvLogstashPass               = "LOGSTASHPASS"
-	EnvLogstashPassKey            = "password"
+	SecLogstashPassKey            = "password"
 	PipelineConfigVolumeName      = "pipeline"
 	PipelineConfigVolumeMountPath = "/usr/share/logstash/pipeline"
 	DEFAULTLOGSTASHIMAGEURL       = "opensearchproject/logstash-oss-with-opensearch-output-plugin:8.4.0"
+
+	ExtOpenSearchUrlProtocol = "https"
+	ExtOpenSearchUrlPort     = "9200"
 )
+
+// global info: external opensearch's url
+var ExtOpenSearchUrl string
+var ExtOpenSearchLogstashUserSecret *corev1.Secret
 
 func BuildSecret(instance *opsterv1.Logstash) *corev1.Secret {
 	// for test
-	// will find a way to create password
 	password := "admin"
 
-	secname := GetSecretName(instance.Name)
+	secname := instance.Spec.Config.OpenSearchClusterRef.Secret
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secname,
 			Namespace: instance.Namespace,
 		},
 		StringData: map[string]string{
-			EnvLogstashUserKey: LogstashUser,
-			EnvLogstashPassKey: password,
+			SecLogstashPassKey: password,
 		},
 	}
 }
@@ -54,14 +58,37 @@ func buildPipelineInputs(inputs string) string {
 	return builder.String()
 }
 
+func buildOpenSearchOutput(instance *opsterv1.Logstash) string {
+	var builder strings.Builder
+	builder.WriteString("opensearch {\n")
+	builder.WriteString(fmt.Sprintf("  hosts => [\"%s\"]\n", ExtOpenSearchUrl))
+	if ExtOpenSearchLogstashUserSecret != nil {
+		builder.WriteString(fmt.Sprintf("  user => \"${%s}\"\n", EnvLogstashUser))
+		builder.WriteString(fmt.Sprintf("  password => \"${%s}\"\n", EnvLogstashPass))
+		builder.WriteString("  ssl => true\n")
+		builder.WriteString("  ssl_certificate_verification => false\n")
+	}
+	if len(instance.Spec.Config.PipelineConfig.OpenSearchIndex) == 0 {
+		builder.WriteString("  index => \"opensearch-logstash-%{+YYYY.MM.dd}\"")
+	} else {
+		builder.WriteString(instance.Spec.Config.PipelineConfig.OpenSearchIndex)
+	}
+	builder.WriteString("\n}\n")
+	return builder.String()
+}
+
 func buildPipelineOutputs(instance *opsterv1.Logstash) string {
 	var builder strings.Builder
+	// default output: stdout
 	if len(instance.Spec.Config.PipelineConfig.Outputs) == 0 && instance.Spec.Config.OpenSearchClusterRef == nil {
 		return "stdout {}\n"
 	}
 	builder.WriteString(instance.Spec.Config.PipelineConfig.Outputs)
 	builder.WriteString("\n")
-	builder.WriteString("")
+	if instance.Spec.Config.OpenSearchClusterRef != nil && len(ExtOpenSearchUrl) != 0 {
+		builder.WriteString(buildOpenSearchOutput(instance))
+	}
+	builder.WriteString("\n")
 	return builder.String()
 }
 
@@ -131,20 +158,13 @@ func buildEnvValArrayFromSecret(instance *opsterv1.Logstash) []corev1.EnvVar {
 		return make([]corev1.EnvVar, 0)
 	}
 
-	secname := GetSecretName(instance.Name)
+	secname := ExtOpenSearchLogstashUserSecret.Name
 	res := make([]corev1.EnvVar, 0)
 
 	// username
 	tmp := corev1.EnvVar{
-		Name: EnvLogstashUser,
-		ValueFrom: &corev1.EnvVarSource{
-			SecretKeyRef: &corev1.SecretKeySelector{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: secname,
-				},
-				Key: EnvLogstashUserKey,
-			},
-		},
+		Name:  EnvLogstashUser,
+		Value: LogstashUser,
 	}
 	res = append(res, tmp)
 
@@ -156,7 +176,7 @@ func buildEnvValArrayFromSecret(instance *opsterv1.Logstash) []corev1.EnvVar {
 				LocalObjectReference: corev1.LocalObjectReference{
 					Name: secname,
 				},
-				Key: EnvLogstashPassKey,
+				Key: SecLogstashPassKey,
 			},
 		},
 	}
@@ -246,4 +266,11 @@ func BuildDeployment(instance *opsterv1.Logstash) *appsv1.Deployment {
 	}
 
 	return deploy
+}
+
+func BuildExtOpenSearchUrl(srv string, ns string) {
+	if len(srv) == 0 {
+		ExtOpenSearchUrl = ""
+	}
+	ExtOpenSearchUrl = fmt.Sprintf("%s://%s.%s.svc.cluster.local:%s", ExtOpenSearchUrlProtocol, srv, ns, ExtOpenSearchUrlPort)
 }

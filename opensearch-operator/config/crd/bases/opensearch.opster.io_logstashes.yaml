@@ -157,6 +157,10 @@ spec:
                         type: string
                       namespace:
                         type: string
+                      secret:
+                        type: string
+                      service:
+                        type: string
                     type: object
                   pipelineConfig:
                     properties:
@@ -164,7 +168,7 @@ spec:
                         type: string
                       inputs:
                         type: string
-                      openSearchOutput:
+                      openSearchIndex:
                         type: string
                       outputs:
                         type: string

@@ -45,14 +45,9 @@ func NewSecretReconciler(
 func (r *SecretReconciler) Reconcile() (ctrl.Result, error) {
 	r.logger.Info("Reconciling secret")
 
-	if r.instance.Spec.Config.OpenSearchClusterRef == nil {
-		r.logger.Info("Not define OpenSearchClusterName, not create secret")
-		return ctrl.Result{}, nil
-	}
-
 	result := reconciler.CombinedResult{}
 	lstsecret := utils.BuildSecret(r.instance)
 	result.CombineErr(ctrl.SetControllerReference(r.instance, lstsecret, r.Scheme()))
 	result.Combine(r.ReconcileResource(lstsecret, reconciler.StatePresent))
-	return result.Result, result.Err
+	return ctrl.Result{}, nil
 }

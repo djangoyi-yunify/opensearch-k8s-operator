@@ -6,19 +6,21 @@ spec:
   replicas: 1
   config:
     openSearchClusterRef:
-      name: opscluster
+      name: my-cluster
+      service: my-cluster
+      secret: my-cluster-admin-password
     #   namespace: defaults
     logstashConfig:
       - name: env1
         value: "hehe1"
       - name: env2
         value: "haha2"
-    ports: [9001,9002, 9600]
+    ports: [8080, 9600]
     # pipelineConfig:
     #   inputs:
     #   filters:
     #   outputs:
-    #   openSearchOutput:
+    #   openSearchIndex:
   podTemplate:
     spec:
       containers:
