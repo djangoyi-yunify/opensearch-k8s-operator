@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -24,6 +25,8 @@ const (
 
 	ExtOpenSearchUrlProtocol = "https"
 	ExtOpenSearchUrlPort     = "9200"
+
+	EnvCmHashKey = "CMHASH"
 )
 
 // global info: external opensearch's url
@@ -108,7 +111,7 @@ func BuildConfigMap(instance *opsterv1.Logstash) (*corev1.ConfigMap, string) {
 
 	hash := sha1.New()
 	hash.Write([]byte(builder.String()))
-	hashStr := string(hash.Sum([]byte("")))
+	hashStr := hex.EncodeToString(hash.Sum(nil))
 
 	cmname := GetConfigMapName(instance.Name)
 	return &corev1.ConfigMap{
@@ -197,7 +200,7 @@ func buildContainerPostArray(instance *opsterv1.Logstash) []corev1.ContainerPort
 	return res
 }
 
-func buildTemplateSpec(instance *opsterv1.Logstash) *corev1.PodTemplateSpec {
+func buildTemplateSpec(instance *opsterv1.Logstash, hash string) *corev1.PodTemplateSpec {
 	res := instance.Spec.PodTemplate.DeepCopy()
 
 	// labels
@@ -208,6 +211,10 @@ func buildTemplateSpec(instance *opsterv1.Logstash) *corev1.PodTemplateSpec {
 
 	// Env
 	tmparray := MergeEnvVarArray(instance.Spec.Config.LogstashConfig, buildEnvValArrayFromSecret(instance))
+	tmparray = append(tmparray, corev1.EnvVar{
+		Name:  EnvCmHashKey,
+		Value: hash,
+	})
 	res.Spec.Containers[0].Env = MergeEnvVarArray(res.Spec.Containers[0].Env, tmparray)
 
 	// Resource.Limits
@@ -247,9 +254,9 @@ func buildTemplateSpec(instance *opsterv1.Logstash) *corev1.PodTemplateSpec {
 	return res
 }
 
-func BuildDeployment(instance *opsterv1.Logstash) *appsv1.Deployment {
+func BuildDeployment(instance *opsterv1.Logstash, hash string) *appsv1.Deployment {
 	dname := GetDeploymentName(instance.Name)
-	template := buildTemplateSpec(instance)
+	template := buildTemplateSpec(instance, hash)
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      dname,

@@ -3,7 +3,7 @@ kind: Logstash
 metadata:
   name: logstash-sample
 spec:
-  replicas: 1
+  replicas: 2
   config:
     openSearchClusterRef:
       name: my-cluster
@@ -16,11 +16,11 @@ spec:
       - name: env2
         value: "haha2"
     ports: [8080, 9600]
-    # pipelineConfig:
-    #   inputs:
-    #   filters:
-    #   outputs:
-    #   openSearchIndex:
+    pipelineConfig:
+      inputs:
+      filters:
+      outputs:
+      openSearchIndex: "index => myabc"
   podTemplate:
     spec:
       containers:

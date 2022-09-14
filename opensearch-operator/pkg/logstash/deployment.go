@@ -49,7 +49,7 @@ func (r *DeploymentReconciler) Reconcile() (ctrl.Result, error) {
 	r.logger.Info("Reconciling deployment")
 
 	result := reconciler.CombinedResult{}
-	lstdeployment := utils.BuildDeployment(r.instance)
+	lstdeployment := utils.BuildDeployment(r.instance, r.hash)
 	result.CombineErr(ctrl.SetControllerReference(r.instance, lstdeployment, r.Scheme()))
 	result.Combine(r.ReconcileResource(lstdeployment, reconciler.StatePresent))
 	return result.Result, result.Err
