@@ -5,11 +5,12 @@ metadata:
 spec:
   replicas: 2
   config:
+    jvm: "-Xms512m -Xmx512m"
     openSearchClusterRef:
       name: my-cluster
       service: my-cluster
       secret: my-cluster-admin-password
-    #   namespace: defaults
+      namespace: default
     logstashConfig:
       - name: env1
         value: "hehe1"

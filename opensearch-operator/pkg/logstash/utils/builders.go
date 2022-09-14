@@ -215,30 +215,36 @@ func buildTemplateSpec(instance *opsterv1.Logstash, hash string) *corev1.PodTemp
 		Name:  EnvCmHashKey,
 		Value: hash,
 	})
+
+	if len(instance.Spec.Config.Jvm) == 0 {
+		tmparray = append(tmparray, corev1.EnvVar{
+			Name:  "LS_JAVA_OPTS",
+			Value: "-Xms512m -Xmx512m",
+		})
+	} else {
+		tmparray = append(tmparray, corev1.EnvVar{
+			Name:  "LS_JAVA_OPTS",
+			Value: instance.Spec.Config.Jvm,
+		})
+	}
+
 	res.Spec.Containers[0].Env = MergeEnvVarArray(res.Spec.Containers[0].Env, tmparray)
 
 	// Resource.Limits
+	var reslist corev1.ResourceList
 	if res.Spec.Containers[0].Resources.Limits == nil {
-		res.Spec.Containers[0].Resources.Limits = corev1.ResourceList{
-			"cpu": resource.Quantity{
-				Format: "500m",
-			},
-			"memory": resource.Quantity{
-				Format: "0.5Gi",
-			},
-		}
+		reslist = make(corev1.ResourceList)
+		reslist[corev1.ResourceCPU] = resource.MustParse("500m")
+		reslist[corev1.ResourceMemory] = resource.MustParse("1024Mi")
+		res.Spec.Containers[0].Resources.Limits = reslist
 	}
 
 	// Resource.Requests
 	if res.Spec.Containers[0].Resources.Requests == nil {
-		res.Spec.Containers[0].Resources.Requests = corev1.ResourceList{
-			"cpu": resource.Quantity{
-				Format: "500m",
-			},
-			"memory": resource.Quantity{
-				Format: "0.5Gi",
-			},
-		}
+		reslist = make(corev1.ResourceList)
+		reslist[corev1.ResourceCPU] = resource.MustParse("500m")
+		reslist[corev1.ResourceMemory] = resource.MustParse("1024Mi")
+		res.Spec.Containers[0].Resources.Requests = reslist
 	}
 
 	// Mounts for configmap
