@@ -16,7 +16,7 @@ const (
 
 func GetConfigMapName(lstname string) string {
 	var builder strings.Builder
-	builder.WriteString("logstash-")
+	builder.WriteString("oslst-")
 	builder.WriteString(lstname)
 	builder.WriteString("-pipelines")
 	return builder.String()
@@ -24,7 +24,7 @@ func GetConfigMapName(lstname string) string {
 
 func GetServiceName(lstname string) string {
 	var builder strings.Builder
-	builder.WriteString("logstash-")
+	builder.WriteString("oslst-")
 	builder.WriteString(lstname)
 	builder.WriteString("-network")
 	return builder.String()
@@ -32,7 +32,7 @@ func GetServiceName(lstname string) string {
 
 func GetDeploymentName(lstname string) string {
 	var builder strings.Builder
-	builder.WriteString("logstash-")
+	builder.WriteString("oslst-")
 	builder.WriteString(lstname)
 	builder.WriteString("-workload")
 	return builder.String()

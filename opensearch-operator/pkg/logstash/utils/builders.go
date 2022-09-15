@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	LogstashUser                  = "admin" //only for test, realname is logstashuser
 	EnvLogstashUser               = "LOGSTASHUSER"
 	EnvLogstashPass               = "LOGSTASHPASS"
+	SecLogstashUserKey            = "username"
 	SecLogstashPassKey            = "password"
 	PipelineConfigVolumeName      = "pipeline"
 	PipelineConfigVolumeMountPath = "/usr/share/logstash/pipeline"
@@ -32,22 +32,6 @@ const (
 // global info: external opensearch's url
 var ExtOpenSearchUrl string
 var ExtOpenSearchLogstashUserSecret *corev1.Secret
-
-func BuildSecret(instance *opsterv1.Logstash) *corev1.Secret {
-	// for test
-	password := "admin"
-
-	secname := instance.Spec.Config.OpenSearchClusterRef.Secret
-	return &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secname,
-			Namespace: instance.Namespace,
-		},
-		StringData: map[string]string{
-			SecLogstashPassKey: password,
-		},
-	}
-}
 
 func buildPipelineInputs(inputs string) string {
 	if len(inputs) != 0 {
@@ -83,12 +67,12 @@ func buildOpenSearchOutput(instance *opsterv1.Logstash) string {
 func buildPipelineOutputs(instance *opsterv1.Logstash) string {
 	var builder strings.Builder
 	// default output: stdout
-	if len(instance.Spec.Config.PipelineConfig.Outputs) == 0 && instance.Spec.Config.OpenSearchClusterRef == nil {
+	if len(instance.Spec.Config.PipelineConfig.Outputs) == 0 && instance.Spec.Config.OpenSearchInfo == nil {
 		return "stdout {}\n"
 	}
 	builder.WriteString(instance.Spec.Config.PipelineConfig.Outputs)
 	builder.WriteString("\n")
-	if instance.Spec.Config.OpenSearchClusterRef != nil && len(ExtOpenSearchUrl) != 0 {
+	if instance.Spec.Config.OpenSearchInfo != nil && len(ExtOpenSearchUrl) != 0 {
 		builder.WriteString(buildOpenSearchOutput(instance))
 	}
 	builder.WriteString("\n")
@@ -157,7 +141,7 @@ func BuildService(instance *opsterv1.Logstash) *corev1.Service {
 }
 
 func buildEnvValArrayFromSecret(instance *opsterv1.Logstash) []corev1.EnvVar {
-	if instance.Spec.Config.OpenSearchClusterRef == nil {
+	if instance.Spec.Config.OpenSearchInfo == nil {
 		return make([]corev1.EnvVar, 0)
 	}
 
@@ -166,8 +150,15 @@ func buildEnvValArrayFromSecret(instance *opsterv1.Logstash) []corev1.EnvVar {
 
 	// username
 	tmp := corev1.EnvVar{
-		Name:  EnvLogstashUser,
-		Value: LogstashUser,
+		Name: EnvLogstashUser,
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: secname,
+				},
+				Key: SecLogstashUserKey,
+			},
+		},
 	}
 	res = append(res, tmp)
 

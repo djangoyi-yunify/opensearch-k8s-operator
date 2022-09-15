@@ -6,11 +6,12 @@ spec:
   replicas: 2
   config:
     jvm: "-Xms512m -Xmx512m"
-    openSearchClusterRef:
-      name: my-cluster
-      service: my-cluster
-      secret: my-cluster-admin-password
-      namespace: default
+    openSearchInfo:
+      openSearchService:
+        name: my-cluster
+        namespace: default
+      openSearchCredential:
+        name: logstash-credential
     logstashConfig:
       - name: env1
         value: "hehe1"
@@ -19,9 +20,13 @@ spec:
     ports: [8080, 9600]
     pipelineConfig:
       inputs:
-      filters:
+      filters: |-
+        mutate {
+          add_field => { "LogstashHost" => "${HOSTNAME}" }
+        }
       outputs:
-      openSearchIndex: "index => myabc"
+      openSearchIndex: |-
+        index => "os-logstash-%{+YYYY.MM.dd}"
   podTemplate:
     spec:
       containers:

@@ -28,11 +28,14 @@ const (
 	LogstashPhasePending LogstashPhase = "PENDING"
 )
 
-type OpenSearchClusterRef struct {
+type NameNamespace struct {
 	Name      string `json:"name,omitempty"`
-	Service   string `json:"service,omitempty"`
-	Secret    string `json:"secret,omitempty"`
 	Namespace string `json:"namespace,omitempty"`
+}
+
+type OpenSearchInfo struct {
+	OpenSearchService    NameNamespace               `json:"openSearchService,omitempty"`
+	OpenSearchCredential corev1.LocalObjectReference `json:"openSearchCredential,omitempty"`
 }
 
 type PipelineConfig struct {
@@ -43,11 +46,11 @@ type PipelineConfig struct {
 }
 
 type Config struct {
-	OpenSearchClusterRef *OpenSearchClusterRef `json:"openSearchClusterRef,omitempty"`
-	Jvm                  string                `json:"jvm,omitempty"`
-	LogstashConfig       []corev1.EnvVar       `json:"logstashConfig,omitempty"`
-	PipelineConfig       PipelineConfig        `json:"pipelineConfig,omitempty"`
-	Ports                []int32               `json:"ports,omitempty"`
+	OpenSearchInfo *OpenSearchInfo `json:"openSearchInfo,omitempty"`
+	Jvm            string          `json:"jvm,omitempty"`
+	LogstashConfig []corev1.EnvVar `json:"logstashConfig,omitempty"`
+	PipelineConfig PipelineConfig  `json:"pipelineConfig,omitempty"`
+	Ports          []int32         `json:"ports,omitempty"`
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!

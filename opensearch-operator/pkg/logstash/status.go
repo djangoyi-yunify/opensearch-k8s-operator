@@ -6,6 +6,9 @@ import (
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 	opsterv1 "opensearch.opster.io/api/v1"
 	"opensearch.opster.io/pkg/logstash/utils"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -13,7 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-type SecretReconciler struct {
+type StatusReconciler struct {
 	client.Client
 	reconciler.ResourceReconciler
 	ctx      context.Context
@@ -21,19 +24,19 @@ type SecretReconciler struct {
 	logger   logr.Logger
 }
 
-func NewSecretReconciler(
+func NewStatusReconciler(
 	client client.Client,
 	ctx context.Context,
 	instance *opsterv1.Logstash,
 	opts ...reconciler.ResourceReconcilerOption,
-) *SecretReconciler {
-	return &SecretReconciler{
+) *StatusReconciler {
+	return &StatusReconciler{
 		Client: client,
 		ResourceReconciler: reconciler.NewReconcilerWith(client,
 			append(
 				opts,
 				reconciler.WithPatchCalculateOptions(patch.IgnoreVolumeClaimTemplateTypeMetaAndStatus(), patch.IgnoreStatusFields()),
-				reconciler.WithLog(log.FromContext(ctx).WithValues("logstash subcontroller", "secret")),
+				reconciler.WithLog(log.FromContext(ctx).WithValues("logstash subcontroller", "status")),
 			)...,
 		),
 		ctx:      ctx,
@@ -42,12 +45,26 @@ func NewSecretReconciler(
 	}
 }
 
-func (r *SecretReconciler) Reconcile() (ctrl.Result, error) {
-	r.logger.Info("Reconciling secret")
+func (r *StatusReconciler) Reconcile() (ctrl.Result, error) {
+	r.logger.Info("Reconciling status")
 
-	result := reconciler.CombinedResult{}
-	lstsecret := utils.BuildSecret(r.instance)
-	result.CombineErr(ctrl.SetControllerReference(r.instance, lstsecret, r.Scheme()))
-	result.Combine(r.ReconcileResource(lstsecret, reconciler.StatePresent))
+	dl := &appsv1.Deployment{}
+	if err := r.Get(r.ctx, types.NamespacedName{Namespace: r.instance.Namespace, Name: utils.GetDeploymentName(r.instance.Name)}, dl); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		if dl.Status.ReadyReplicas == dl.Status.Replicas {
+			r.instance.Status.Phase = opsterv1.LogstashPhaseRunning
+		} else {
+			r.instance.Status.Phase = opsterv1.LogstashPhasePending
+		}
+		return r.Status().Update(r.ctx, r.instance)
+	})
+
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }

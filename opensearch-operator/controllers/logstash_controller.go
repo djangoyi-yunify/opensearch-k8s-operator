@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -98,12 +99,15 @@ func (r *LogstashReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 
-	// if len(r.Instance.Status.Phase) == 0 {
-	// 	r.Instance.Status.Phase = opsterv1.LogstashPhasePending
-	// 	if err := r.Update(ctx, r.Instance); err != nil {
-	// 		return ctrl.Result{}, err
-	// 	}
-	// }
+	if len(r.Instance.Status.Phase) == 0 {
+		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			r.Instance.Status.Phase = opsterv1.LogstashPhasePending
+			return r.Status().Update(ctx, r.Instance)
+		})
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 
 	result, err := r.internalReconcile(ctx, req)
 	if err != nil {
@@ -157,7 +161,15 @@ func (r *LogstashReconciler) internalReconcile(ctx context.Context, req ctrl.Req
 }
 
 func (r *LogstashReconciler) updateStatus(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	return ctrl.Result{}, nil
+	status := lst.NewStatusReconciler(r.Client, ctx, r.Instance)
+	if res, err := status.Reconcile(); err != nil {
+		return ctrl.Result{}, err
+	} else {
+		if r.Instance.Status.Phase == opsterv1.LogstashPhasePending {
+			return ctrl.Result{Requeue: true, RequeueAfter: 30 * time.Second}, nil
+		}
+		return res, nil
+	}
 }
 
 // SetupWithManager sets up the controller with the Manager.
