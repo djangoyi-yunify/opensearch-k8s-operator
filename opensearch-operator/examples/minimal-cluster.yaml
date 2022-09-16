@@ -38,8 +38,8 @@ spec:
       roles:
         - "cluster_manager"
     - component: nodes
-      replicas: 2
-      diskSize: "30Gi"
+      replicas: 5
+      diskSize: "50Gi"
       NodeSelector:
       resources:
         requests:

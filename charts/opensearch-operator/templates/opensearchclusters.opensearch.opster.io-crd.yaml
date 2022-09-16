@@ -2558,6 +2558,9 @@ spec:
                   of cluster Important: Run "make" to regenerate code after modifying
                   this file'
                 type: string
+              status:
+                description: 'status for dmp'
+                type: string
               version:
                 type: string
             required:

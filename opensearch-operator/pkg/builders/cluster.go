@@ -26,6 +26,7 @@ const (
 	NodePoolLabel                    = "opster.io/opensearch-nodepool"
 	ConfigurationChecksumAnnotation  = "opster.io/config"
 	securityconfigChecksumAnnotation = "securityconfig/checksum"
+	LastApplyConfiguration           = "kubectl.kubernetes.io/last-applied-configuration"
 )
 
 func NewSTSForNodePool(

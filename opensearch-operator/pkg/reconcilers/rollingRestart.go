@@ -86,9 +86,27 @@ func (r *RollingRestartReconciler) Reconcile() (ctrl.Result, error) {
 	}
 
 	if !pendingUpdate {
+		if r.instance.Status.Status != opsterv1.PhaseRunning || r.instance.Status.Phase == opsterv1.PhaseRunning {
+			r.instance.Status.Phase = opsterv1.PhaseRunning
+			r.instance.Status.Status = opsterv1.PhaseRunning
+			err := r.Status().Update(r.ctx, r.instance)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		lg.V(1).Info("No pods pending restart")
 		return ctrl.Result{}, nil
 	}
+
+	if r.instance.Status.Status != opsterv1.PhaseUpdating || r.instance.Status.Phase == opsterv1.PhaseUpdating {
+		r.instance.Status.Phase = opsterv1.PhaseUpdating
+		r.instance.Status.Status = opsterv1.PhaseUpdating
+		err := r.Status().Update(r.ctx, r.instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
 	r.recorder.AnnotatedEventf(r.instance, map[string]string{"cluster-name": r.instance.GetName()}, "Normal", "RollingRestart", "Starting to rolling restart")
 
 	// If there is work to do create an Opensearch Client
