@@ -72,6 +72,11 @@ docker-build: test ## Build docker image with the manager.
 	go get opensearch.opster.io/pkg/helpers
 	DOCKER_BUILDKIT=1 docker build -t ${IMG} .
 
+docker-build-qc:
+	go get opensearch.opster.io/pkg/builders
+	go get opensearch.opster.io/pkg/helpers
+	DOCKER_BUILDKIT=1 docker build -f Dockerfile-alt -t ${IMG} .
+
 docker-build-multiarch: ## Build docker image with the manager for all supported architectures
 	go get opensearch.opster.io/pkg/builders
 	go get opensearch.opster.io/pkg/helpers
