@@ -65,6 +65,10 @@ func (r *TLSReconciler) Reconcile() (ctrl.Result, error) {
 	tlsConfig := r.instance.Spec.Security.Tls
 
 	if tlsConfig.Transport != nil {
+		//err := r.updateStatus(opsterv1.PhaseUpdating)
+		//if err != nil {
+		//	return ctrl.Result{}, err
+		//}
 		if err := r.handleTransport(); err != nil {
 			return ctrl.Result{}, err
 		}
@@ -463,4 +467,15 @@ func mountFolder(interfaceName string, name string, secretName string, reconcile
 func (r *TLSReconciler) DeleteResources() (ctrl.Result, error) {
 	result := reconciler.CombinedResult{}
 	return result.Result, result.Err
+}
+
+func (r *TLSReconciler) updateStatus(status string) error {
+	if r.instance.Status.Status != status {
+		r.instance.Status.Status = status
+		err := r.Status().Update(r.ctx, r.instance)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

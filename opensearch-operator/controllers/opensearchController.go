@@ -18,8 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -91,15 +89,6 @@ func (r *OpenSearchClusterReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	if !reflect.DeepEqual(fmt.Sprintf("%s", r.Instance.Spec), r.Instance.Annotations[builders.LastApplyConfiguration]) {
-		r.Instance.Status.Phase = opsterv1.PhaseUpdating
-		r.Instance.Status.Status = opsterv1.PhaseUpdating
-		err := r.Status().Update(ctx, r.Instance)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-	}
-
 	/// ------ check if CRD has been deleted ------ ///
 	///	if ns deleted, delete the associated resources ///
 	if r.Instance.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -118,8 +107,7 @@ func (r *OpenSearchClusterReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 	} else {
-		if r.Instance.Status.Phase != opsterv1.PhaseDeleting || r.Instance.Status.Status != opsterv1.PhaseDeleting {
-			r.Instance.Status.Phase = opsterv1.PhaseDeleting
+		if r.Instance.Status.Status != opsterv1.PhaseDeleting {
 			r.Instance.Status.Status = opsterv1.PhaseDeleting
 			err := r.Status().Update(ctx, r.Instance)
 			if err != nil {
@@ -169,13 +157,12 @@ func (r *OpenSearchClusterReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			return ctrl.Result{}, r.Status().Update(ctx, r.Instance)
 		}
 		return initing, nil
-	case r.Instance.Status.Phase == opsterv1.PhaseCreating ||
-		r.Instance.Status.Phase == opsterv1.PhaseRunning ||
-		r.Instance.Status.Phase == opsterv1.PhaseUpdating ||
-		r.Instance.Status.Phase == opsterv1.PhaseFailed:
+	case r.Instance.Status.Status == opsterv1.PhaseCreating ||
+		r.Instance.Status.Status == opsterv1.PhaseRunning ||
+		r.Instance.Status.Status == opsterv1.PhaseUpdating ||
+		r.Instance.Status.Status == opsterv1.PhaseFailed:
 		running, err := r.reconcilePhaseRunning(ctx)
 		if err != nil {
-			r.Instance.Status.Phase = opsterv1.PhaseFailed
 			r.Instance.Status.Status = opsterv1.PhaseFailed
 			r.Logger.Error(err, "reconcilePhaseRunning error")
 			return ctrl.Result{}, r.Status().Update(ctx, r.Instance)

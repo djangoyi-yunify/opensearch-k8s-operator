@@ -86,8 +86,7 @@ func (r *RollingRestartReconciler) Reconcile() (ctrl.Result, error) {
 	}
 
 	if !pendingUpdate {
-		if r.instance.Status.Status != opsterv1.PhaseRunning || r.instance.Status.Phase == opsterv1.PhaseRunning {
-			r.instance.Status.Phase = opsterv1.PhaseRunning
+		if r.instance.Status.Status != opsterv1.PhaseRunning {
 			r.instance.Status.Status = opsterv1.PhaseRunning
 			err := r.Status().Update(r.ctx, r.instance)
 			if err != nil {
@@ -98,8 +97,7 @@ func (r *RollingRestartReconciler) Reconcile() (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
-	if r.instance.Status.Status != opsterv1.PhaseUpdating || r.instance.Status.Phase == opsterv1.PhaseUpdating {
-		r.instance.Status.Phase = opsterv1.PhaseUpdating
+	if r.instance.Status.Status != opsterv1.PhaseUpdating {
 		r.instance.Status.Status = opsterv1.PhaseUpdating
 		err := r.Status().Update(r.ctx, r.instance)
 		if err != nil {
