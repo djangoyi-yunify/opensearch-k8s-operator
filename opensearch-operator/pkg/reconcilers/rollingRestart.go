@@ -89,6 +89,7 @@ func (r *RollingRestartReconciler) Reconcile() (ctrl.Result, error) {
 		if r.instance.Status.Status != opsterv1.PhaseRunning {
 			log.FromContext(r.ctx).Info("testUpdate rollingRestart false")
 			r.instance.Status.Status = opsterv1.PhaseRunning
+			r.instance.Status.Phase = opsterv1.PhaseRunning
 			err := r.Status().Update(r.ctx, r.instance)
 			if err != nil {
 				return ctrl.Result{}, err

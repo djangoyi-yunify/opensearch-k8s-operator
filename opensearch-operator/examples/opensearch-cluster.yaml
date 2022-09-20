@@ -11,7 +11,7 @@ spec:
     serviceName: cluster
 #    pluginsList: ["repository-s3"," https://github.com/aiven/prometheus-exporter-plugin-for-opensearch/releases/download/1.3.0.0/prometheus-exporter-1.3.0.0.zip"]
   dashboards:
-    version: 2.1.0
+    version: 2.2.0
     enable: true
     replicas: 1
 #    opensearchCredentialsSecret:

@@ -11,9 +11,9 @@ spec:
     serviceName: min-cluster
   #    pluginsList: ["repository-s3"," https://github.com/aiven/prometheus-exporter-plugin-for-opensearch/releases/download/1.3.0.0/prometheus-exporter-1.3.0.0.zip"]
   dashboards:
-    version: 2.1.0
+    version: 2.2.0
     enable: true
-    replicas: 1
+    replicas: 2
     resources:
       requests:
         memory: "1Gi"
@@ -38,7 +38,7 @@ spec:
       roles:
         - "cluster_manager"
     - component: nodes
-      replicas: 5
+      replicas: 2
       diskSize: "50Gi"
       NodeSelector:
       resources:

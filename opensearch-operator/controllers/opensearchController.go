@@ -282,10 +282,6 @@ func (r *OpenSearchClusterReconciler) reconcilePhaseRunning(ctx context.Context)
 				return err
 			}
 			r.Instance.Status.Initialized = builders.AllMastersReady(ctx, r.Client, r.Instance)
-			if r.Instance.Status.Initialized {
-				r.Instance.Status.Phase = opsterv1.PhaseRunning
-				r.Instance.Status.Status = opsterv1.PhaseRunning
-			}
 			return r.Status().Update(ctx, r.Instance)
 		}); err != nil {
 			return ctrl.Result{}, err
