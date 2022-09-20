@@ -151,7 +151,6 @@ func (r *OpenSearchClusterReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	case r.Instance.Status.Phase == opsterv1.PhaseIniting:
 		initing, err := r.reconcilePhaseIniting(ctx)
 		if err != nil {
-			r.Instance.Status.Phase = opsterv1.PhaseFailed
 			r.Instance.Status.Status = opsterv1.PhaseFailed
 			r.Logger.Error(err, "reconcilePhaseIniting error")
 			return ctrl.Result{}, r.Status().Update(ctx, r.Instance)
@@ -163,9 +162,14 @@ func (r *OpenSearchClusterReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		r.Instance.Status.Status == opsterv1.PhaseFailed:
 		running, err := r.reconcilePhaseRunning(ctx)
 		if err != nil {
-			r.Instance.Status.Status = opsterv1.PhaseFailed
-			r.Logger.Error(err, "reconcilePhaseRunning error")
-			return ctrl.Result{}, r.Status().Update(ctx, r.Instance)
+			// retry after sts is created
+			if errors.IsNotFound(err) && r.Instance.Status.Status == opsterv1.PhaseCreating {
+				return ctrl.Result{Requeue: true, RequeueAfter: 3 * time.Second}, nil
+			} else {
+				r.Instance.Status.Status = opsterv1.PhaseFailed
+				r.Logger.Error(err, "reconcilePhaseRunning error")
+				return ctrl.Result{}, r.Status().Update(ctx, r.Instance)
+			}
 		}
 		return running, nil
 	//todo Is it possible to delete "default" ?
