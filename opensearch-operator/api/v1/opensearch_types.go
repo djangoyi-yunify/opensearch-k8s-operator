@@ -22,12 +22,13 @@ import (
 )
 
 const (
-	PhaseIniting  = "Initing"
-	PhaseRunning  = "Running"
-	PhaseCreating = "Creating"
-	PhaseDeleting = "Deleting"
-	PhaseUpdating = "Updating"
-	PhaseFailed   = "Failed"
+	PhaseIniting   = "Initing"
+	PhaseRunning   = "Running"
+	PhaseCreating  = "Creating"
+	PhaseDeleting  = "Deleting"
+	PhaseUpdating  = "Updating"
+	PhaseExpanding = "Expanding"
+	PhaseFailed    = "Failed"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!

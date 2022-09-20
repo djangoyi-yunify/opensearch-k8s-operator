@@ -80,6 +80,16 @@ func (r *ScalerReconciler) reconcileNodePool(nodePool *opsterv1.NodePool) (bool,
 	if desireReplicaDiff == 0 {
 		return false, nil
 	}
+
+	if r.instance.Status.Status != opsterv1.PhaseUpdating {
+		log.FromContext(r.ctx).Info("testUpdate scale")
+		r.instance.Status.Status = opsterv1.PhaseUpdating
+		err := r.Status().Update(r.ctx, r.instance)
+		if err != nil {
+			return false, err
+		}
+	}
+
 	componentStatus := opsterv1.ComponentStatus{
 		Component:   "Scaler",
 		Description: nodePool.Component,

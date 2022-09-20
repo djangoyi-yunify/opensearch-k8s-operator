@@ -65,10 +65,6 @@ func (r *TLSReconciler) Reconcile() (ctrl.Result, error) {
 	tlsConfig := r.instance.Spec.Security.Tls
 
 	if tlsConfig.Transport != nil {
-		//err := r.updateStatus(opsterv1.PhaseUpdating)
-		//if err != nil {
-		//	return ctrl.Result{}, err
-		//}
 		if err := r.handleTransport(); err != nil {
 			return ctrl.Result{}, err
 		}

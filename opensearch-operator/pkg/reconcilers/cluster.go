@@ -183,6 +183,14 @@ func (r *ClusterReconciler) reconcileNodeStatefulSet(nodePool opsterv1.NodePool,
 }
 
 func (r *ClusterReconciler) dealWithExpandingPvc(existing *appsv1.StatefulSet, nodePool opsterv1.NodePool, existingDisk string) error {
+	if r.instance.Status.Status != opsterv1.PhaseExpanding {
+		r.instance.Status.Status = opsterv1.PhaseExpanding
+		err := r.Status().Update(r.ctx, r.instance)
+		if err != nil {
+			return err
+		}
+	}
+
 	annotations := map[string]string{"cluster-name": r.instance.GetName()}
 	r.recorder.AnnotatedEventf(r.instance, annotations, "Normal", "PVC", "Starting to resize PVC %s/%s from %s to  %s ", existing.Namespace, existing.Name, existingDisk, nodePool.DiskSize)
 
