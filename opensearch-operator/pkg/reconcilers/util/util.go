@@ -116,11 +116,20 @@ func CreateAdditionalVolumes(
 			namesIndex[volumeConfig.Name] = i
 			names = append(names, volumeConfig.Name)
 		}
-		retVolumeMounts = append(retVolumeMounts, corev1.VolumeMount{
-			Name:      volumeConfig.Name,
-			ReadOnly:  true,
-			MountPath: volumeConfig.Path,
-		})
+		if len(volumeConfig.SubPath) == 0 {
+			retVolumeMounts = append(retVolumeMounts, corev1.VolumeMount{
+				Name:      volumeConfig.Name,
+				ReadOnly:  true,
+				MountPath: volumeConfig.Path,
+			})
+		} else {
+			retVolumeMounts = append(retVolumeMounts, corev1.VolumeMount{
+				Name:      volumeConfig.Name,
+				ReadOnly:  true,
+				MountPath: volumeConfig.Path,
+				SubPath:   volumeConfig.SubPath,
+			})
+		}
 	}
 	sort.Strings(names)
 

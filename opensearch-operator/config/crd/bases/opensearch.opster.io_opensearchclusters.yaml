@@ -1144,6 +1144,10 @@ spec:
                                 to use. More info: https://kubernetes.io/docs/concepts/storage/volumes#secret'
                               type: string
                           type: object
+                        subPath:
+                          description: subPath in the container to mount the volume
+                            at
+                          type: string
                       required:
                       - name
                       - path
@@ -1509,6 +1513,10 @@ spec:
                                 to use. More info: https://kubernetes.io/docs/concepts/storage/volumes#secret'
                               type: string
                           type: object
+                        subPath:
+                          description: subPath in the container to mount the volume
+                            at
+                          type: string
                       required:
                       - name
                       - path

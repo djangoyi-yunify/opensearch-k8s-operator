@@ -189,6 +189,8 @@ type AdditionalVolume struct {
 	Name string `json:"name"`
 	// Path in the container to mount the volume at. Required.
 	Path string `json:"path"`
+	// subPath in the container to mount the volume at
+	SubPath string `json:"subPath,omitempty"`
 	// Secret to use populate the volume
 	Secret *corev1.SecretVolumeSource `json:"secret,omitempty"`
 	// ConfigMap to use to populate the volume
