@@ -464,3 +464,14 @@ func (r *TLSReconciler) DeleteResources() (ctrl.Result, error) {
 	result := reconciler.CombinedResult{}
 	return result.Result, result.Err
 }
+
+func (r *TLSReconciler) updateStatus(status string) error {
+	if r.instance.Status.Status != status {
+		r.instance.Status.Status = status
+		err := r.Status().Update(r.ctx, r.instance)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

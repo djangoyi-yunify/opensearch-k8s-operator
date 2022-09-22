@@ -26,6 +26,7 @@ const (
 	NodePoolLabel                    = "opster.io/opensearch-nodepool"
 	ConfigurationChecksumAnnotation  = "opster.io/config"
 	securityconfigChecksumAnnotation = "securityconfig/checksum"
+	LastApplyConfiguration           = "kubectl.kubernetes.io/last-applied-configuration"
 )
 
 func NewSTSForNodePool(
@@ -307,7 +308,7 @@ func NewSTSForNodePool(
 					},
 					InitContainers: []corev1.Container{{
 						Name:    "init",
-						Image:   "public.ecr.aws/opsterio/busybox:1.27.2-buildx",
+						Image:   "docker.io/nosqlpass/busybox:1.27.2-buildx",
 						Command: []string{"sh", "-c"},
 						Args:    []string{"chown -R 1000:1000 /usr/share/opensearch/data"},
 						SecurityContext: &corev1.SecurityContext{
@@ -357,7 +358,7 @@ func NewSTSForNodePool(
 	if cr.Spec.General.SetVMMaxMapCount {
 		sts.Spec.Template.Spec.InitContainers = append(sts.Spec.Template.Spec.InitContainers, corev1.Container{
 			Name:  "init-sysctl",
-			Image: "public.ecr.aws/opsterio/busybox:1.27.2-buildx",
+			Image: "docker.io/nosqlpass/busybox:1.27.2-buildx",
 			Command: []string{
 				"sysctl",
 				"-w",
@@ -643,7 +644,7 @@ func NewBootstrapPod(
 			InitContainers: []corev1.Container{
 				{
 					Name:    "init",
-					Image:   "public.ecr.aws/opsterio/busybox:1.27.2-buildx",
+					Image:   "docker.io/nosqlpass/busybox:1.27.2-buildx",
 					Command: []string{"sh", "-c"},
 					Args:    []string{"chown -R 1000:1000 /usr/share/opensearch/data"},
 					SecurityContext: &corev1.SecurityContext{
@@ -669,7 +670,7 @@ func NewBootstrapPod(
 	if cr.Spec.General.SetVMMaxMapCount {
 		pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
 			Name:  "init-sysctl",
-			Image: "public.ecr.aws/opsterio/busybox:1.27.2-buildx",
+			Image: "docker.io/nosqlpass/busybox:1.27.2-buildx",
 			Command: []string{
 				"sysctl",
 				"-w",

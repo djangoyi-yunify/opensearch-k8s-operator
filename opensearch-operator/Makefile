@@ -67,7 +67,7 @@ build: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
-docker-build: test ## Build docker image with the manager.
+docker-build:  ## Build docker image with the manager.
 	go get opensearch.opster.io/pkg/builders
 	go get opensearch.opster.io/pkg/helpers
 	DOCKER_BUILDKIT=1 docker build -t ${IMG} .

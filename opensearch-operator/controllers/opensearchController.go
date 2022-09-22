@@ -88,6 +88,7 @@ func (r *OpenSearchClusterReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		// error reading the object, requeue the request
 		return ctrl.Result{}, err
 	}
+
 	/// ------ check if CRD has been deleted ------ ///
 	///	if ns deleted, delete the associated resources ///
 	if r.Instance.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -106,9 +107,18 @@ func (r *OpenSearchClusterReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 	} else {
+		if r.Instance.Status.Status != opsterv1.PhaseDeleting {
+			r.Instance.Status.Status = opsterv1.PhaseDeleting
+			err := r.Status().Update(ctx, r.Instance)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		if helpers.ContainsString(r.Instance.GetFinalizers(), myFinalizerName) {
 			// our finalizer is present, so lets handle any external dependency
-			if result, err := r.deleteExternalResources(ctx); err != nil {
+			result, err := r.deleteExternalResources(ctx)
+
+			if err != nil {
 				// if fail to delete the external dependency here, return with error
 				// so that it can be retried
 				return result, err
@@ -125,20 +135,44 @@ func (r *OpenSearchClusterReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			if err != nil {
 				return ctrl.Result{}, err
 			}
+
+			return result, nil
 		}
 		return ctrl.Result{}, nil
 	}
 
 	/// if crd not deleted started phase 1
 	if r.Instance.Status.Phase == "" {
-		r.Instance.Status.Phase = opsterv1.PhasePending
+		r.Instance.Status.Phase = opsterv1.PhaseIniting
+		r.Instance.Status.Status = opsterv1.PhaseIniting
 	}
 
-	switch r.Instance.Status.Phase {
-	case opsterv1.PhasePending:
-		return r.reconcilePhasePending(ctx)
-	case opsterv1.PhaseRunning:
-		return r.reconcilePhaseRunning(ctx)
+	switch {
+	case r.Instance.Status.Phase == opsterv1.PhaseIniting:
+		initing, err := r.reconcilePhaseIniting(ctx)
+		if err != nil {
+			r.Instance.Status.Status = opsterv1.PhaseFailed
+			r.Logger.Error(err, "reconcilePhaseIniting error")
+			return ctrl.Result{}, r.Status().Update(ctx, r.Instance)
+		}
+		return initing, nil
+	case r.Instance.Status.Status == opsterv1.PhaseCreating ||
+		r.Instance.Status.Status == opsterv1.PhaseRunning ||
+		r.Instance.Status.Status == opsterv1.PhaseUpdating ||
+		r.Instance.Status.Status == opsterv1.PhaseFailed:
+		running, err := r.reconcilePhaseRunning(ctx)
+		if err != nil {
+			// retry after sts is created
+			if errors.IsNotFound(err) && r.Instance.Status.Status == opsterv1.PhaseCreating {
+				return ctrl.Result{Requeue: true, RequeueAfter: 3 * time.Second}, nil
+			} else {
+				r.Instance.Status.Status = opsterv1.PhaseFailed
+				r.Logger.Error(err, "reconcilePhaseRunning error")
+				return ctrl.Result{}, r.Status().Update(ctx, r.Instance)
+			}
+		}
+		return running, nil
+	//todo Is it possible to delete "default" ?
 	default:
 		r.Logger.Info("NOTHING WILL HAPPEN - DEFAULT")
 		return ctrl.Result{Requeue: true, RequeueAfter: 30 * time.Second}, nil
@@ -213,11 +247,11 @@ func (r *OpenSearchClusterReconciler) deleteExternalResources(ctx context.Contex
 		}
 	}
 	r.Logger.Info("Finished deleting resources")
-	return ctrl.Result{}, nil
+	return ctrl.Result{Requeue: true, RequeueAfter: 20 * time.Second}, nil
 }
 
-func (r *OpenSearchClusterReconciler) reconcilePhasePending(ctx context.Context) (ctrl.Result, error) {
-	r.Logger.Info("start reconcile - Phase: PENDING")
+func (r *OpenSearchClusterReconciler) reconcilePhaseIniting(ctx context.Context) (ctrl.Result, error) {
+	r.Logger.Info("start reconcile - Phase: initing")
 	componentStatus := opsterv1.ComponentStatus{
 		Component:   "",
 		Status:      "",
@@ -227,7 +261,8 @@ func (r *OpenSearchClusterReconciler) reconcilePhasePending(ctx context.Context)
 		if err := r.Get(ctx, client.ObjectKeyFromObject(r.Instance), r.Instance); err != nil {
 			return err
 		}
-		r.Instance.Status.Phase = opsterv1.PhaseRunning
+		r.Instance.Status.Phase = opsterv1.PhaseCreating
+		r.Instance.Status.Status = opsterv1.PhaseCreating
 		r.Instance.Status.ComponentsStatus = append(r.Instance.Status.ComponentsStatus, componentStatus)
 		return r.Status().Update(ctx, r.Instance)
 	})

@@ -22,8 +22,13 @@ import (
 )
 
 const (
-	PhasePending = "PENDING"
-	PhaseRunning = "RUNNING"
+	PhaseIniting   = "Initing"
+	PhaseRunning   = "Running"
+	PhaseCreating  = "Creating"
+	PhaseDeleting  = "Deleting"
+	PhaseUpdating  = "Updating"
+	PhaseExpanding = "Expanding"
+	PhaseFailed    = "Failed"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -208,6 +213,7 @@ type ClusterSpec struct {
 type ClusterStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Status           string            `json:"status,omitempty"`
 	Phase            string            `json:"phase,omitempty"`
 	ComponentsStatus []ComponentStatus `json:"componentsStatus"`
 	Version          string            `json:"version,omitempty"`
